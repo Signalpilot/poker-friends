@@ -112,14 +112,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const gameRef = ref(database, `games/${gameId}`);
     const snapshot = await get(gameRef);
-    
+
     if (!snapshot.exists()) throw new Error('Game not found');
-    
+
     const game: GameState = snapshot.val();
-    
+    const players = game.players || {};
+
     if (game.phase !== 'waiting') throw new Error('Game already in progress');
-    if (Object.keys(game.players).length >= game.maxPlayers) throw new Error('Game is full');
-    if (game.players[user.uid]) throw new Error('Already in game');
+    if (Object.keys(players).length >= game.maxPlayers) throw new Error('Game is full');
+    if (players[user.uid]) throw new Error('Already in game');
 
     const player: Player = {
       id: user.uid,
@@ -129,7 +130,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       bet: 0,
       folded: false,
       isAllIn: false,
-      isDealer: Object.keys(game.players).length === 0,
+      isDealer: Object.keys(players).length === 0,
       isTurn: false,
       isAdmin: userData.isAdmin
     };
@@ -168,11 +169,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const game: GameState = snapshot.val();
     
     if (game.createdBy !== user.uid) throw new Error('Only game creator can start');
-    if (Object.keys(game.players).length < game.minPlayers) throw new Error('Not enough players');
+    const gamePlayers = game.players || {};
+    if (Object.keys(gamePlayers).length < game.minPlayers) throw new Error('Not enough players');
 
     const deck = createDeck();
-    const playerIds = Object.keys(game.players);
-    const players = { ...game.players };
+    const playerIds = Object.keys(gamePlayers);
+    const players = { ...gamePlayers };
 
     // Deal 2 cards to each player
     playerIds.forEach((playerId, index) => {
@@ -210,12 +212,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const advancePhase = useCallback(async (game: GameState) => {
     const gameRef = ref(database, `games/${game.id}`);
-    const deck = [...game.deck];
-    let communityCards = [...game.communityCards];
+    const deck = [...(game.deck || [])];
+    let communityCards = [...(game.communityCards || [])];
     let newPhase = game.phase;
 
     // Reset bets for new round
-    const players = { ...game.players };
+    const players = { ...(game.players || {}) };
     Object.keys(players).forEach(id => {
       players[id].bet = 0;
       players[id].isTurn = false;
@@ -263,8 +265,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
 
     // Find first active player after dealer
-    const activePlayers = game.turnOrder.filter(id => !players[id].folded && !players[id].isAllIn);
-    if (activePlayers.length > 0) {
+    const turnOrder = game.turnOrder || [];
+    const activePlayers = turnOrder.filter(id => players[id] && !players[id].folded && !players[id].isAllIn);
+    if (activePlayers.length > 0 && players[activePlayers[0]]) {
       players[activePlayers[0]].isTurn = true;
     }
 
@@ -274,12 +277,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
       communityCards,
       currentBet: 0,
       players,
-      currentPlayerIndex: game.turnOrder.indexOf(activePlayers[0]) || 0
+      currentPlayerIndex: turnOrder.indexOf(activePlayers[0]) || 0
     });
   }, []);
 
   const checkRoundComplete = useCallback(async (game: GameState) => {
-    const activePlayers = getActivePlayers(game.players);
+    const activePlayers = getActivePlayers(game.players || {});
     
     // If only one player left, they win
     if (activePlayers.length === 1) {
@@ -312,19 +315,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, [advancePhase]);
 
   const moveToNextPlayer = useCallback(async (game: GameState) => {
-    const nextIndex = getNextPlayerIndex(game.currentPlayerIndex, game.turnOrder, game.players);
-    
+    const gamePlayers = game.players || {};
+    const turnOrder = game.turnOrder || [];
+    const nextIndex = getNextPlayerIndex(game.currentPlayerIndex, turnOrder, gamePlayers);
+
     if (nextIndex === -1) {
       // No more players can act, advance phase
       await advancePhase(game);
       return;
     }
 
-    const players = { ...game.players };
-    game.turnOrder.forEach(id => {
-      players[id].isTurn = false;
+    const players = { ...gamePlayers };
+    turnOrder.forEach(id => {
+      if (players[id]) players[id].isTurn = false;
     });
-    players[game.turnOrder[nextIndex]].isTurn = true;
+    if (players[turnOrder[nextIndex]]) {
+      players[turnOrder[nextIndex]].isTurn = true;
+    }
 
     await update(ref(database, `games/${game.id}`), {
       currentPlayerIndex: nextIndex,

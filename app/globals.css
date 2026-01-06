@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 13, 92, 46;
+  --background-end-rgb: 10, 50, 30;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--background-start-rgb)),
+    rgb(var(--background-end-rgb))
+  );
+  min-height: 100vh;
+}
+
+@layer utilities {
+  .card-shadow {
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .felt-texture {
+    background: linear-gradient(135deg, #1a7c4e 0%, #0d5c2e 50%, #1a7c4e 100%);
+  }
+  
+  .gold-text {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 50%, #ffd700 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* Card animations */
+@keyframes deal {
+  0% {
+    transform: translateY(-100px) rotate(-20deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) rotate(0);
+    opacity: 1;
+  }
+}
+
+.animate-deal {
+  animation: deal 0.5s ease-out forwards;
+}
+
+/* Chip stack effect */
+.chip {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 12px;
+  border: 3px dashed rgba(255, 255, 255, 0.3);
+}
+
+.chip::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Button hover effects */
+.btn-poker {
+  @apply px-6 py-3 rounded-lg font-bold transition-all duration-200 transform hover:scale-105 active:scale-95;
+}
+
+.btn-green {
+  @apply bg-green-600 hover:bg-green-500 text-white;
+}
+
+.btn-red {
+  @apply bg-red-600 hover:bg-red-500 text-white;
+}
+
+.btn-gold {
+  @apply bg-yellow-600 hover:bg-yellow-500 text-white;
+}
+
+.btn-blue {
+  @apply bg-blue-600 hover:bg-blue-500 text-white;
+}
+
+/* Playing card styles */
+.playing-card {
+  @apply bg-white rounded-lg shadow-lg flex flex-col items-center justify-center;
+  width: 70px;
+  height: 100px;
+  font-family: 'Georgia', serif;
+}
+
+.playing-card.face-down {
+  background: repeating-linear-gradient(
+    45deg,
+    #1e40af,
+    #1e40af 10px,
+    #1e3a8a 10px,
+    #1e3a8a 20px
+  );
+}
+
+/* Table felt */
+.poker-table {
+  @apply rounded-full border-8 border-amber-900;
+  background: radial-gradient(ellipse at center, #1a7c4e 0%, #0d5c2e 100%);
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.3), 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Pot display */
+.pot-display {
+  @apply bg-black/30 rounded-full px-6 py-2 border-2 border-yellow-500/50;
+}
+
+/* Player seat */
+.player-seat {
+  @apply bg-gray-800/80 rounded-xl p-3 border-2 transition-all duration-300;
+}
+
+.player-seat.active {
+  @apply border-yellow-400 shadow-lg shadow-yellow-500/30;
+}
+
+.player-seat.folded {
+  @apply opacity-50 border-gray-600;
+}
+
+.player-seat.winner {
+  @apply border-green-400 shadow-lg shadow-green-500/50;
+  animation: pulse 1s infinite;
+}

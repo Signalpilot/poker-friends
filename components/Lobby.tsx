@@ -151,8 +151,8 @@ export default function Lobby() {
                     <div>
                       <h4 className="font-bold text-lg">Table #{game.id.slice(0, 6)}</h4>
                       <p className="text-sm text-gray-400">
-                        Blinds: {game.smallBlind}/{game.bigBlind} • 
-                        Players: {Object.keys(game.players).length}/{game.maxPlayers}
+                        Blinds: {game.smallBlind}/{game.bigBlind} •
+                        Players: {Object.keys(game.players || {}).length}/{game.maxPlayers}
                       </p>
                     </div>
                     <button
@@ -165,7 +165,7 @@ export default function Lobby() {
                   
                   {/* Player avatars */}
                   <div className="flex gap-1 mt-3">
-                    {Object.values(game.players).map((player) => (
+                    {Object.values(game.players || {}).map((player) => (
                       <div
                         key={player.id}
                         className="bg-gray-700 rounded-full px-3 py-1 text-xs"
@@ -186,7 +186,7 @@ export default function Lobby() {
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
             <span className="text-yellow-400">●</span> Games in Progress
           </h3>
-          
+
           {activeGames.length === 0 ? (
             <div className="bg-gray-900/50 rounded-xl p-6 text-center text-gray-400 border border-gray-700">
               <p className="text-4xl mb-2">🃏</p>
@@ -208,9 +208,9 @@ export default function Lobby() {
                     </div>
                     <span className="text-yellow-400 text-sm">In Progress</span>
                   </div>
-                  
+
                   <div className="flex gap-1 mt-3">
-                    {Object.values(game.players).map((player) => (
+                    {Object.values(game.players || {}).map((player) => (
                       <div
                         key={player.id}
                         className={`rounded-full px-3 py-1 text-xs ${

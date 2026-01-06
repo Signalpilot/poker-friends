@@ -19,8 +19,9 @@ export default function PokerTable() {
     );
   }
 
-  const players = Object.values(currentGame.players);
-  const currentPlayer = currentGame.players[user.uid];
+  const gamePlayers = currentGame.players || {};
+  const players = Object.values(gamePlayers);
+  const currentPlayer = gamePlayers[user.uid];
   const isMyTurn = currentPlayer?.isTurn;
   const canStart = currentGame.createdBy === user.uid && 
                    currentGame.phase === 'waiting' && 
@@ -112,11 +113,11 @@ export default function PokerTable() {
             
             {/* Community Cards */}
             <div className="flex gap-2 justify-center mt-4">
-              {currentGame.communityCards.map((card, i) => (
+              {(currentGame.communityCards || []).map((card, i) => (
                 <PlayingCard key={i} card={card} size="md" className="animate-deal" />
               ))}
               {/* Placeholder cards */}
-              {Array(5 - currentGame.communityCards.length).fill(null).map((_, i) => (
+              {Array(5 - (currentGame.communityCards || []).length).fill(null).map((_, i) => (
                 <div 
                   key={`empty-${i}`} 
                   className="w-14 h-20 rounded-lg border-2 border-dashed border-gray-600/30"
@@ -160,8 +161,8 @@ export default function PokerTable() {
 
               {/* Player Cards */}
               <div className="flex gap-1 justify-center">
-                {player.cards.length > 0 ? (
-                  player.cards.map((card, i) => (
+                {(player.cards || []).length > 0 ? (
+                  (player.cards || []).map((card, i) => (
                     <PlayingCard 
                       key={i} 
                       card={showCards ? card : undefined} 
@@ -220,7 +221,7 @@ export default function PokerTable() {
         ) : currentGame.phase === 'showdown' ? (
           <div className="text-center">
             <div className="text-2xl font-bold text-green-400 mb-4">
-              🏆 {currentGame.players[currentGame.winner || '']?.name} wins with {currentGame.winningHand}!
+              🏆 {gamePlayers[currentGame.winner || '']?.name} wins with {currentGame.winningHand}!
             </div>
             {currentGame.createdBy === user.uid && (
               <button
@@ -308,11 +309,11 @@ export default function PokerTable() {
       </div>
 
       {/* My Hand Summary */}
-      {currentPlayer && currentPlayer.cards.length > 0 && !currentPlayer.folded && (
+      {currentPlayer && (currentPlayer.cards || []).length > 0 && !currentPlayer.folded && (
         <div className="fixed bottom-4 left-4 bg-black/80 rounded-xl p-4 border border-yellow-500/30">
           <div className="text-sm text-gray-400 mb-2">Your Hand</div>
           <div className="flex gap-2">
-            {currentPlayer.cards.map((card, i) => (
+            {(currentPlayer.cards || []).map((card, i) => (
               <PlayingCard key={i} card={card} size="md" />
             ))}
           </div>
